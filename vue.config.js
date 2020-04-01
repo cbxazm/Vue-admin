@@ -1,3 +1,4 @@
+var path=require('path')
 module.exports = {
     // 项目部署的基础路径
     // 我们默认假设你的应用将会部署在域名的根部，
@@ -13,7 +14,18 @@ module.exports = {
 
     // 放置静态资源的地方 (js/css/img/font/...)
     assetsDir: '',
-
+      configureWebpack:(config)=>{
+        config.resolve={
+          //  配置解析别名
+            extensions:['.js','.json','.vue'],//自动添加文件后缀名
+            alias:{
+                '@':path.resolve(__dirname,'./src'),
+                'public':path.resolve(__dirname,'./public'),
+                'components':path.resolve(__dirname,'./src/components'),
+                'views':path.resolve(__dirname,'./src/views')
+            }
+          }
+      },
     // 用于多页配置，默认是 undefined
     pages: {
         index: {

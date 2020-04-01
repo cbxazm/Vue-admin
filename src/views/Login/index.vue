@@ -11,8 +11,12 @@
      <el-input type="text" v-model="ruleForm.username" autocomplete="off"></el-input>
     </el-form-item>
     <el-form-item  prop="password"  class="item-form">
-     <label>密码</label>
-     <el-input type="password" v-model="ruleForm.password" autocomplete="off" minlength="6" maxlength="9"></el-input>
+    <label>密码</label>
+    <el-input type="password" v-model="ruleForm.password" autocomplete="off" minlength="6" maxlength="9"></el-input>
+   </el-form-item>
+    <el-form-item  prop="passwords"  class="item-form" v-if="model==='register'">
+     <label>重复密码</label>
+     <el-input type="password" v-model="ruleForm.passwords" autocomplete="off" minlength="6" maxlength="9"></el-input>
     </el-form-item>
     <el-form-item  prop="code"  class="item-form">
      <label>验证码</label>
@@ -22,9 +26,7 @@
       <el-col :span="6">
       <el-button type="success" class="center">获取验证码</el-button></el-col>
      </el-col>
-
      </el-row>
-
     </el-form-item>
     <el-form-item>
      <el-button type="primary" @click="submitForm('ruleForm')">提交</el-button>
@@ -35,6 +37,7 @@
  </div>
 </template>
 <script>
+ import {stripscript} from '@/utils/validate.js'
     export default {
         name: "login",
         data(){
@@ -56,6 +59,8 @@
             // };
             //验证用户名
             var validateUsername = (rule, value, callback) => {
+                    this.ruleForm.username=stripscript(value) //把过滤后的值绑定过去
+                value=this.ruleForm.username
                 let reg=/^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
                 if (value === '') {
                     callback(new Error('请输入用户名'));
@@ -68,6 +73,8 @@
             };
             //验证密码
             var validatePassword = (rule, value, callback) => {
+                this.ruleForm.password=stripscript(value)
+                value=this.ruleForm.password
                 if (value === '') {
                     callback(new Error('请输入密码'));
                 } else {
@@ -82,15 +89,27 @@
                     callback();
                 }
             };
+            var validatePasswords=(rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请再次输入密码'));
+                } else if(value!=this.ruleForm.password){
+                    callback(new Error('密码输入不一致'));
+                }else {
+                   callback()
+                }
+            };
             return{
                 mentTab:[
-                    {txt:'登录',current:true},
-                    {txt:'注册',current:false}
+                    {txt:'登录',current:true,type:'login'},
+                    {txt:'注册',current:false,type:'register'}
                 ],
+                //模块值
+                model:'login',
                 ruleForm: {
                     username: '',
                     password: '',
-                    code: ''
+                    code: '',
+                    passwords:''
                 },
                 rules: {
                     username: [
@@ -101,17 +120,21 @@
                     ],
                     code: [
                         { validator: validateCode, trigger: 'blur' }
+                    ],
+                    passwords:[
+                        {validator:validatePasswords,trigger:'blur'}
                     ]
                 }
             }
         },
         methods:{
             toggleMenu(data){
-                // console.log(data)
+                console.log(data)
                 this.mentTab.forEach(item=>{
                     item.current =false
                 });
                 data.current=true
+                this.model=data.type
             },
             submitForm(formName) {
                 this.$refs[formName].validate((valid) => {
